@@ -25,20 +25,36 @@ def terminate():
 
 
 def start_screen():
-    intro_text = ['Flappy Knight', 'Начать новую игру', 'Посмотреть лучшие результаты']
+    name_text = 'Flappy Knight'
+    new_game_text = 'Начать новую игру'
+    see_results_text = 'Посмотреть лучшие результаты'
+    author_text = 'by Alex Rybka, 2023'
 
     fon = pygame.transform.scale(load_image('fon.png'), (width, height))
     screen.blit(fon, (0, 0))
+    font = pygame.font.Font('fonts/Vinque.ttf', 50)
+    string_rendered = font.render(name_text, 1, pygame.Color('gold'))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.top = 10
+    intro_rect.x = 100
+    screen.blit(string_rendered, intro_rect)
     font = pygame.font.Font('fonts/Vinque.ttf', 30)
-    text_coord = 50
-    for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
+    string_rendered = font.render(new_game_text, 1, pygame.Color('gold'))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.top = 150
+    intro_rect.x = 120
+    screen.blit(string_rendered, intro_rect)
+    string_rendered = font.render(see_results_text, 1, pygame.Color('gold'))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.top = 200
+    intro_rect.x = 50
+    screen.blit(string_rendered, intro_rect)
+    font = pygame.font.Font('fonts/Vinque.ttf', 15)
+    string_rendered = font.render(author_text, 1, pygame.Color('gold'))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.top = 480
+    intro_rect.x = 10
+    screen.blit(string_rendered, intro_rect)
 
     while True:
         for event in pygame.event.get():
