@@ -120,7 +120,48 @@ def start_screen():
 
 
 def load_game():
-    pass
+    base_font = pygame.font.Font('fonts/Vinque.ttf', 32)
+    background = load_image('background.png')
+    screen.blit(background, (0, 0))
+    pygame.display.update()
+    back_to_main_text = 'Назад'
+    back_to_main = Button(back_to_main_text, 30, 10, 10, 'gold')
+    title = Button('Введите имя и нажмите Tab', 30, 125, 55, 'gold')
+    input_rect = pygame.Rect(190, 200, 100, 50)
+    active = False
+    user_text = ''
+    color_active = pygame.Color('white')
+    color_passive = pygame.Color('gold')
+    color = color_passive
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if back_to_main.button_clicked():
+                    start_screen()
+                elif input_rect.collidepoint(event.pos):
+                    active = True
+                else:
+                    active = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    user_text = user_text[:-1]
+                elif event.key == pygame.K_TAB:
+                    new_game_page(user_text)
+                else:
+                    user_text += event.unicode
+        back_to_main.button_mentioned('white')
+        if active:
+            color = color_active
+        else:
+            color = color_passive
+        pygame.draw.rect(screen, color, input_rect)
+        text_surface = base_font.render(user_text, True, (0, 0, 0))
+        screen.blit(text_surface, (input_rect.x + 5, input_rect.y + 5))
+        input_rect.w = max(100, text_surface.get_width() + 10)
+        pygame.display.update()
+        clock.tick(FPS)
 
 
 def results_page():
@@ -182,6 +223,32 @@ def rules_page():
         back_to_main.button_mentioned('white')
         pygame.display.update()
         clock.tick(FPS)
+
+
+def new_game_page(text):
+    background = load_image('background.png')
+    screen.blit(background, (0, 0))
+    pygame.display.update()
+    back_to_main_text = 'Назад'
+    back_to_main = Button(back_to_main_text, 30, 10, 10, 'gold')
+    title = Button('Нажмите пробел чтобы начать', 30, 125, 35, 'gold')
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if back_to_main.button_clicked():
+                    start_screen()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    start_game(text)
+        back_to_main.button_mentioned('white')
+        pygame.display.update()
+        clock.tick(FPS)
+
+
+def start_game(text):
+    pass
 
 
 start_screen()
