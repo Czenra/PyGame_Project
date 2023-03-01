@@ -1,16 +1,21 @@
 import os
 import pygame
 import sys
+import math
+import random
 
 FPS = 12
 
 pygame.init()
 size = width, height = 500, 500
 screen = pygame.display.set_mode(size)
+pygame.display.set_caption("Flappy Knight")
 clock = pygame.time.Clock()
 dragon_group = pygame.sprite.Group()
 knight_group = pygame.sprite.Group()
-bush_group = pygame.sprite.Group()
+game_speed = 20
+global obstacles
+obstacles = []
 
 
 class Button(pygame.sprite.Sprite):
@@ -72,6 +77,34 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
 
 
+class Obstacle:
+    def __init__(self, image):
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x = width
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def update(self):
+        self.rect.x -= game_speed
+        if self.rect.x < -self.rect.width:
+            obstacles.pop()
+
+    def draw(self, scr):
+        scr.blit(self.image, self.rect)
+
+
+class SmallBush(Obstacle):
+    def __init__(self, image):
+        super().__init__(image)
+        self.rect.y = 375
+
+
+class LargeBush(Obstacle):
+    def __init__(self, image):
+        super().__init__(image)
+        self.rect.y = 375
+
+
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
@@ -81,12 +114,28 @@ def load_image(name, colorkey=None):
     return image
 
 
+def jumping(knight, time):
+    if time > 5:
+        velocity = time * 2
+        knight.rect.top -= velocity
+    elif time <= 5:
+        velocity = time * 2
+        knight.rect.top += velocity
+
+
+def dragon_move(dragon, dragon_timer):
+    velocity = 1
+    dragon.rect.x -= dragon_timer * velocity
+
+
 def terminate():
     pygame.quit()
     sys.exit()
 
 
 def start_screen():
+    global obstacles
+    obstacles = []
     name_text = 'Flappy Knight'
     new_game_text = 'Начать новую игру'
     see_results_text = 'Посмотреть лучшие результаты'
@@ -188,13 +237,10 @@ def rules_page():
     rules_in_text = ['Вам предстоит играть за рыцаря.',
                      'Несмотря на то, что Вы рыцарь,',
                      'необходимо избегать кустов и драконов.',
-                     'Чтобы спрятаться от дракона, нужно нажать down.',
-                     'С кустами сложнее, они бывают трёх видов:',
-                     'маленькие, средние и большие',
-                     'Чтобы перепрыгнуть маленький или средний куст,',
-                     ' нужно нажать up.',
-                     'Чтобы перепрыгнуть большой куст,',
-                     'нужно нажать up ДВА раза.',
+                     'Чтобы спрятаться от дракона, нажмите down.',
+                     'С кустами сложнее, они бывают двух видов:',
+                     'маленькие и большие',
+                     'Чтобы перепрыгнуть  куст, нужно нажать up.',
                      'Удачи!',
                      'P.S. Принцессу спасать не нужно']
     result_screen = pygame.Surface((width, height))
@@ -209,10 +255,10 @@ def rules_page():
     for text in rules_in_text:
         if rules_in_text.index(text) == 1 or rules_in_text.index(text) == 2:
             text = Button(text, 22, c_x, c_y, 'darkturquoise')
-            c_x += 35
+            c_x += 52
         else:
-            text = Button(text, 20, c_x, c_y, 'white')
-            c_x += 35
+            text = Button(text, 21, c_x, c_y, 'yellow')
+            c_x += 52
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -258,18 +304,44 @@ def new_game_page(text):
 
 
 def start_game(text):
-    score = 0
+    global obstacles
+    obstacles = []
     background = load_image('background.png')
-    background = pygame.transform.scale(background, (width, height))
+    bg_width = background.get_width()
+    bg_rect = background.get_rect()
+    tiles = math.ceil(width / bg_width) + 1
     screen.blit(background, (0, 0))
     pygame.display.update()
+    text = text
+    scroll = 0
+    score = 0
+    jump_timer = 0
+    gallop_timer = 0
+    dragon_timer = 50
+
     score_text = Button(str(score), 30, 10, 350, 'gold')
     back_to_main_text = 'Назад'
     back_to_main = Button(back_to_main_text, 30, 10, 10, 'gold')
-    knight = AnimatedSprite(load_image("gallop.png"), 5, 1, 10, 350)
-    knight_group.add(knight)
-    i = 0
+
+    knight_walking = AnimatedSprite(load_image('walk.png'), 8, 1, 10, 350)
+    knight_gallop = AnimatedSprite(load_image('gallop.png'), 5, 1, 10, 350)
+    knight_jump = AnimatedSprite(load_image('jump.png'), 13, 1, 10, 350)
+    knight_jump.mask = pygame.mask.from_surface(knight_jump.image)
+    knight_gallop.mask = pygame.mask.from_surface(knight_gallop.image)
+    knight_walking.mask = pygame.mask.from_surface(knight_walking.image)
+    knight_group.add(knight_walking)
+
+    dragon = AnimatedSprite(load_image('reddragonfly3.png'), 4, 4, 500, 255)
+    dragon_group.add(dragon)
+    dragon_flag = False
+
     while True:
+        for i in range(0, tiles):
+            screen.blit(background, (i * bg_width + scroll, 0))
+            bg_rect.x = i * bg_width + scroll
+        scroll -= 15
+        if abs(scroll) > bg_width:
+            scroll = 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
@@ -277,21 +349,96 @@ def start_game(text):
                 if back_to_main.button_clicked():
                     start_screen()
             if event.type == pygame.KEYDOWN:
-                pass
-        i -= 1
-        if i == -width:
-            i = 0
-        screen.blit(background, (i, 0))
-        screen.blit(background, (i + width, 0))
+                if event.key == pygame.K_UP:
+                    knight_group.remove(knight_walking)
+                    knight_group.add(knight_jump)
+                    jump_timer = 10
+                elif event.key == pygame.K_DOWN:
+                    knight_group.remove(knight_walking)
+                    knight_group.add(knight_gallop)
+                    gallop_timer = 10
+        if len(obstacles) == 0:
+            if random.randint(0, 3) == 0:
+                obstacles.append(SmallBush(load_image('bush_1.png')))
+            elif random.randint(0, 3) == 1:
+                obstacles.append(LargeBush(load_image('bush_2.png')))
+            else:
+                if dragon_flag is True:
+                    pass
+                else:
+                    dragon_flag = True
+        for obstacle in obstacles:
+            obstacle.draw(screen)
+            obstacle.update()
+            if pygame.sprite.collide_mask(knight_group.sprites()[0], obstacle) is not None:
+                knight_group.remove(knight_walking)
+                knight_group.remove(knight_jump)
+                knight_group.remove(knight_gallop)
+                dragon_group.remove(dragon)
+                end_game(score, text)
         score_text = Button(str(score), 30, 10, 350, 'gold')
         background = load_image('background.png')
         back_to_main.button_mentioned('white')
         score_text.button_mentioned('gold')
         screen.blit(screen, (0, 0))
+        if dragon_flag is True:
+            dragon_group.update()
+            dragon_group.draw(screen)
+            if dragon_timer > 0:
+                dragon_move(dragon, dragon_timer)
+                dragon_timer -= 1
+            else:
+                dragon_flag = False
+                dragon.rect.x = width
+                dragon_timer = 50
         knight_group.update()
         knight_group.draw(screen)
+        if jump_timer > 0:
+            jumping(knight_jump, jump_timer)
+            jump_timer -= 1
+            if jump_timer == 0:
+                knight_group.remove(knight_jump)
+                knight_group.add(knight_walking)
+                knight_jump.rect.top = 350
+        if gallop_timer > 0:
+            gallop_timer -= 1
+            if gallop_timer == 0:
+                knight_group.remove(knight_gallop)
+                knight_group.add(knight_walking)
         pygame.display.update()
-        clock.tick(5)
+        clock.tick(8)
+
+
+def end_game(score, text):
+    background = load_image('background.png')
+    screen.blit(background, (0, 0))
+    pygame.display.update()
+    back_to_main_text = 'В главное меню'
+    restart_text = 'Начать заново'
+    game_over_text = 'Game Over!'
+    results_text = text +' ' + str(score)
+    game_over = Button(game_over_text, 40, 30, 145, 'gold')
+    back_to_main = Button(back_to_main_text, 30, 250, 140, 'gold')
+    restart = Button(restart_text, 30, 290, 150, 'gold')
+    results = Button(results_text, 30, 125, 200, 'gold')
+    add_name_and_score(text, score)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if back_to_main.button_clicked():
+                    start_screen()
+                if restart.button_clicked():
+                    new_game_page(text)
+        back_to_main.button_mentioned('white')
+        restart.button_mentioned('white')
+        pygame.display.update()
+        clock.tick(FPS)
+
+
+def add_name_and_score(name, score):
+    pass
 
 
 start_screen()
