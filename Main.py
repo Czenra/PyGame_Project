@@ -14,8 +14,9 @@ clock = pygame.time.Clock()
 dragon_group = pygame.sprite.Group()
 knight_group = pygame.sprite.Group()
 game_speed = 20
-global obstacles
+global obstacles, points
 obstacles = []
+points = 0
 
 
 class Button(pygame.sprite.Sprite):
@@ -304,7 +305,7 @@ def new_game_page(text):
 
 
 def start_game(text):
-    global obstacles
+    global obstacles, points
     obstacles = []
     background = load_image('background.png')
     bg_width = background.get_width()
@@ -314,12 +315,11 @@ def start_game(text):
     pygame.display.update()
     text = text
     scroll = 0
-    score = 0
+    points = 0
     jump_timer = 0
     gallop_timer = 0
     dragon_timer = 50
 
-    score_text = Button(str(score), 30, 10, 350, 'gold')
     back_to_main_text = 'Назад'
     back_to_main = Button(back_to_main_text, 30, 10, 10, 'gold')
 
@@ -334,6 +334,14 @@ def start_game(text):
     dragon = AnimatedSprite(load_image('reddragonfly3.png'), 4, 4, 500, 255)
     dragon_group.add(dragon)
     dragon_flag = False
+
+    def score():
+        global points, game_speed
+        points += 1
+        if points % 100 == 0:
+            game_speed += 1
+        score_text = Button(str(points), 30, 10, 350, 'gold')
+        score_text.button_mentioned('gold')
 
     while True:
         for i in range(0, tiles):
@@ -375,11 +383,10 @@ def start_game(text):
                 knight_group.remove(knight_jump)
                 knight_group.remove(knight_gallop)
                 dragon_group.remove(dragon)
-                end_game(score, text)
-        score_text = Button(str(score), 30, 10, 350, 'gold')
+                end_game(points, text)
+        score()
         background = load_image('background.png')
         back_to_main.button_mentioned('white')
-        score_text.button_mentioned('gold')
         screen.blit(screen, (0, 0))
         if dragon_flag is True:
             dragon_group.update()
@@ -409,19 +416,19 @@ def start_game(text):
         clock.tick(8)
 
 
-def end_game(score, text):
+def end_game(points, text):
     background = load_image('background.png')
     screen.blit(background, (0, 0))
     pygame.display.update()
     back_to_main_text = 'В главное меню'
     restart_text = 'Начать заново'
     game_over_text = 'Game Over!'
-    results_text = text + ', ' + str(score)
+    results_text = text + ', ' + str(points)
     game_over = Button(game_over_text, 40, 30, 145, 'gold')
     back_to_main = Button(back_to_main_text, 30, 250, 140, 'gold')
     restart = Button(restart_text, 30, 290, 150, 'gold')
     results = Button(results_text, 30, 125, 190, 'gold')
-    add_name_and_score(text, score)
+    add_name_and_score(text, points)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -437,7 +444,7 @@ def end_game(score, text):
         clock.tick(FPS)
 
 
-def add_name_and_score(name, score):
+def add_name_and_score(name, points):
     pass
 
 
