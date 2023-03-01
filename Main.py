@@ -17,8 +17,6 @@ dragon_group = pygame.sprite.Group()
 knight_group = pygame.sprite.Group()
 game_speed = 20
 global obstacles, points
-obstacles = []
-points = 0
 
 
 class Button(pygame.sprite.Sprite):
@@ -227,7 +225,33 @@ def results_page():
     players = pd.read_csv('users_scores.csv')
     players.sort_values(by=['score'])
     num = players.shape[0]
-    result_list = []
+    names = []
+    scores = []
+    dates = []
+    players = players.sort_values(by=['score'], ascending=False).values
+    if num < 5:
+        for i in range(num):
+            names.append(players[i][0])
+            scores.append(players[i][1])
+            dates.append(players[i][2])
+    else:
+        for i in range(5):
+            names.append(players[i][0])
+            scores.append(players[i][1])
+            dates.append(players[i][2])
+    c_x = 120
+    c_y = 20
+    title_name = Button('Имя игрока', 30, 65, 20, 'gold')
+    title_score = Button('Счёт', 30, 65, 200, 'gold')
+    title_date = Button('Дата', 30, 65, 300, 'gold')
+    for i in range(len(names)):
+        dt = dates[i].replace("_", ' ')
+        text = names[i] + '   ' + str(scores[i]) + '   ' + dt
+        if len(text) > 40:
+            text = Button(text, 22, c_x, c_y, 'gold')
+        else:
+            text = Button(text, 25, c_x, c_y, 'gold')
+        c_x += 70
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -458,7 +482,7 @@ def end_game(points, text):
 
 def add_name_and_score(name, points):
     dt_now = datetime.datetime.now()
-    dt_now = dt_now.strftime('%d:%m:%Y_%H:%M')
+    dt_now = dt_now.strftime('%d.%m.%Y_%H:%M')
     if name == '':
         name = 'the_one_without_name'
     old = pd.read_csv('users_scores.csv')
