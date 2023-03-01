@@ -416,11 +416,11 @@ def end_game(score, text):
     back_to_main_text = 'В главное меню'
     restart_text = 'Начать заново'
     game_over_text = 'Game Over!'
-    results_text = text +' ' + str(score)
+    results_text = text + ', ' + str(score)
     game_over = Button(game_over_text, 40, 30, 145, 'gold')
     back_to_main = Button(back_to_main_text, 30, 250, 140, 'gold')
     restart = Button(restart_text, 30, 290, 150, 'gold')
-    results = Button(results_text, 30, 125, 200, 'gold')
+    results = Button(results_text, 30, 125, 190, 'gold')
     add_name_and_score(text, score)
     while True:
         for event in pygame.event.get():
