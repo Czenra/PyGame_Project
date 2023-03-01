@@ -227,11 +227,14 @@ def rules_page():
 
 def new_game_page(text):
     background = load_image('background.png')
+    background = pygame.transform.scale(background, (width, height))
     screen.blit(background, (0, 0))
     pygame.display.update()
     back_to_main_text = 'Назад'
     back_to_main = Button(back_to_main_text, 30, 10, 10, 'gold')
     title = Button('Нажмите пробел чтобы начать', 30, 125, 35, 'gold')
+    knight = AnimatedSprite(load_image("idle.png"), 5, 1, 10, 350)
+    knight_group.add(knight)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -241,14 +244,54 @@ def new_game_page(text):
                     start_screen()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
+                    knight_group.remove(knight)
                     start_game(text)
+        background = load_image('background.png')
+        screen.blit(background, (0, 0))
         back_to_main.button_mentioned('white')
+        title.button_mentioned('gold')
+        knight_group.update()
+        screen.blit(screen, (0, 0))
+        knight_group.draw(screen)
         pygame.display.update()
-        clock.tick(FPS)
+        clock.tick(5)
 
 
 def start_game(text):
-    pass
+    score = 0
+    background = load_image('background.png')
+    background = pygame.transform.scale(background, (width, height))
+    screen.blit(background, (0, 0))
+    pygame.display.update()
+    score_text = Button(str(score), 30, 10, 350, 'gold')
+    back_to_main_text = 'Назад'
+    back_to_main = Button(back_to_main_text, 30, 10, 10, 'gold')
+    knight = AnimatedSprite(load_image("gallop.png"), 5, 1, 10, 350)
+    knight_group.add(knight)
+    i = 0
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if back_to_main.button_clicked():
+                    start_screen()
+            if event.type == pygame.KEYDOWN:
+                pass
+        i -= 1
+        if i == -width:
+            i = 0
+        screen.blit(background, (i, 0))
+        screen.blit(background, (i + width, 0))
+        score_text = Button(str(score), 30, 10, 350, 'gold')
+        background = load_image('background.png')
+        back_to_main.button_mentioned('white')
+        score_text.button_mentioned('gold')
+        screen.blit(screen, (0, 0))
+        knight_group.update()
+        knight_group.draw(screen)
+        pygame.display.update()
+        clock.tick(5)
 
 
 start_screen()
