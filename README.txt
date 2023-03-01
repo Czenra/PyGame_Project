@@ -6,5 +6,5 @@
 
 P.S. Большие кусты иногда считают, что рыцарь их задел, хотя это не так. Драконы могут появляться очень неожиданно.
 
-
+Презентация:
 https://docs.google.com/presentation/d/12vbt9ZFM3kKSLl0vCUJLZfJ-pi3mkHriDkSQWIOiAOY/edit?usp=sharing
