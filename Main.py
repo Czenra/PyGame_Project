@@ -3,6 +3,8 @@ import pygame
 import sys
 import math
 import random
+import pandas as pd
+import datetime
 
 FPS = 12
 
@@ -222,6 +224,10 @@ def results_page():
     pygame.display.update()
     back_to_main_text = 'Назад'
     back_to_main = Button(back_to_main_text, 30, 10, 10, 'gold')
+    players = pd.read_csv('users_scores.csv')
+    players.sort_values(by=['score'])
+    num = players.shape[0]
+    result_list = []
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -331,7 +337,7 @@ def start_game(text):
     knight_walking.mask = pygame.mask.from_surface(knight_walking.image)
     knight_group.add(knight_walking)
 
-    dragon = AnimatedSprite(load_image('reddragonfly3.png'), 4, 4, 500, 255)
+    dragon = AnimatedSprite(load_image('reddragonfly3.png'), 4, 4, 500, 266)
     dragon_group.add(dragon)
     dragon_flag = False
 
@@ -391,6 +397,12 @@ def start_game(text):
         if dragon_flag is True:
             dragon_group.update()
             dragon_group.draw(screen)
+            if pygame.sprite.collide_mask(knight_group.sprites()[0], dragon_group.sprites()[0]) is not None:
+                knight_group.remove(knight_walking)
+                knight_group.remove(knight_jump)
+                knight_group.remove(knight_gallop)
+                dragon_group.remove(dragon)
+                end_game(points, text)
             if dragon_timer > 0:
                 dragon_move(dragon, dragon_timer)
                 dragon_timer -= 1
@@ -426,7 +438,7 @@ def end_game(points, text):
     results_text = text + ', ' + str(points)
     game_over = Button(game_over_text, 40, 30, 145, 'gold')
     back_to_main = Button(back_to_main_text, 30, 250, 140, 'gold')
-    restart = Button(restart_text, 30, 290, 150, 'gold')
+    restart = Button(restart_text, 30, 290, 145, 'gold')
     results = Button(results_text, 30, 125, 190, 'gold')
     add_name_and_score(text, points)
     while True:
@@ -445,7 +457,13 @@ def end_game(points, text):
 
 
 def add_name_and_score(name, points):
-    pass
+    dt_now = datetime.datetime.now()
+    dt_now = dt_now.strftime('%d:%m:%Y_%H:%M')
+    if name == '':
+        name = 'the_one_without_name'
+    old = pd.read_csv('users_scores.csv')
+    new = pd.DataFrame({'name': [name], 'score': [str(points)], 'data_time': [dt_now]})
+    pd.concat([old, new], ignore_index=True).to_csv('users_scores.csv', index=False)
 
 
 start_screen()

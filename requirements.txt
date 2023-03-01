@@ -3,3 +3,5 @@ pygame
 sys
 math
 random
+pandas
+datetime
